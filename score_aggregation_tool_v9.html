@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>得点集計ツール v9</title>
+<style>
+:root{--navy:#203653;--blue:#2459a9;--line:#dce1e8;--muted:#687385;--bg:#f3f5f8;--red:#a61b1b;--green:#17663b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#202631;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.4}
+header{background:var(--navy);color:#fff;padding:12px 14px}
+header h1{font-size:20px;margin:0}header p{font-size:12px;margin:3px 0 0;opacity:.9}
+main{max-width:1200px;margin:auto;padding:9px}
+nav{display:flex;gap:7px;margin-bottom:9px;flex-wrap:wrap}
+button,input,select{font:inherit}button{padding:8px 10px;border:1px solid #ccd2dc;border-radius:7px;background:#fff;cursor:pointer;font-size:14px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #76a8f5;outline-offset:1px}
+button.primary,.tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}button.danger{color:var(--red)}
+.panel{background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px;margin-bottom:9px;min-width:0}
+h2{font-size:16px;margin:0 0 9px}h3{font-size:14px;margin:0 0 7px}
+.note{font-size:12px;color:var(--muted);margin:5px 0 8px}
+.row{display:flex;flex-wrap:wrap;gap:8px}.field{flex:1;min-width:95px}.field label{display:block;font-size:11px;color:var(--muted);margin-bottom:3px}
+input,select{width:100%;min-width:0;padding:7px;border:1px solid #cbd2dc;border-radius:6px;background:#fff;color:#202631;font-size:14px}
+input[type=number]{font-variant-numeric:tabular-nums}
+table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:5px;border-bottom:1px solid #e5e8ed;text-align:left;vertical-align:middle}th{background:#f0f3f7;white-space:nowrap}td input,td select{padding:5px 4px;font-size:12px}
+.table-wrap{width:100%;overflow:auto;-webkit-overflow-scrolling:touch}.actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.status{padding:6px 8px;border-radius:6px;background:#eef2f6;margin:5px 0;font-size:12px}.good{background:#e7f6ed;color:var(--green)}.bad{background:#fff0f0;color:var(--red)}
+.output{white-space:pre-wrap;overflow-wrap:anywhere;background:#f7f8fa;border:1px solid var(--line);border-radius:7px;padding:9px;font-size:13px;min-height:54px;user-select:text}
+.hidden{display:none!important}.rank{font-weight:700;white-space:nowrap}
+/* Hide numeric spin buttons; Enter moves to the next score input. */
+input[type=number]{appearance:textfield;-moz-appearance:textfield}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.team-config-row{display:grid;grid-template-columns:minmax(80px,1fr) 72px;gap:6px;align-items:end}
+.key-field{width:72px;min-width:72px}.key-field input{text-align:center;text-transform:none;font-weight:700}
+#rankTable .match-col input.rank-team{width:82px;min-width:82px;text-align:center;font-size:12px;padding:5px 3px}
+#rankTable .match-col input.rank-team::placeholder{font-size:10px}
+.settings-line{display:flex;flex-wrap:wrap;gap:9px;align-items:end}.settings-block{flex:1;min-width:140px;max-width:260px}.custom-count{max-width:130px}.team-name-field{flex:0 1 150px;min-width:90px}.count-label{font-size:11px;font-weight:400;color:var(--muted)}
+/* Section 1: compact horizontal match cards */
+.match-scroller{display:flex;gap:8px;overflow-x:auto;padding:1px 1px 8px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;align-items:stretch}
+.match-card{flex:0 0 225px;width:225px;padding:9px;margin:0;scroll-snap-align:start}
+.match-card .rally-input{margin-bottom:6px}.match-card table td:first-child{min-width:70px}.match-card table input{min-width:75px}.match-card .status{font-size:11px}
+/* Section 2: rank is the vertical axis, matches scroll horizontally */
+#rankTable{width:max-content;min-width:100%;table-layout:fixed}#rankTable th,#rankTable td{padding:3px 4px;text-align:center}
+#rankTable .rank-col{position:sticky;left:0;z-index:3;min-width:42px;width:42px;background:#f0f3f7}
+#rankTable .point-col{position:sticky;left:42px;z-index:3;min-width:54px;width:54px;background:#f0f3f7}
+#rankTable td.rank-col,#rankTable td.point-col{background:#fff;z-index:2;font-weight:650}
+#rankTable .match-col{width:90px;min-width:90px}
+#rankTable .match-col select{width:82px;min-width:82px;padding:5px 2px;font-size:12px}
+#rankTable .rally-head{min-width:90px;width:90px;background:#e7edf6}
+#rankTable .rally-head input{min-width:84px;width:84px;font-size:11px;padding:5px 2px}
+#rankTable .rank-label{font-weight:700}
+#rankTable thead tr:first-child th{position:sticky;top:0;z-index:4}
+#rankTable thead tr:first-child th.rank-col,#rankTable thead tr:first-child th.point-col{z-index:6}
+#rosterCounts{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.team-count-pill{border:1px solid var(--line);border-radius:6px;padding:3px 6px;font-size:11px;background:#f8f9fb}
+@media(min-width:700px){main{padding:12px}.match-card{flex-basis:230px;width:230px}}
+
+/* Shared team palette in both modes: first four colors stay red, blue, yellow, green. */
+.team-color-field{border-left:4px solid var(--team-color,#cbd2dc);padding-left:7px;border-radius:4px}
+.team-color-field input{border-color:var(--team-color,#cbd2dc)}
+[data-team-color="0"]{--team-color:#e5484d;--team-tint:#fff0f0;--team-ink:#992d32}
+[data-team-color="1"]{--team-color:#3478e5;--team-tint:#edf4ff;--team-ink:#1e4f9b}
+[data-team-color="2"]{--team-color:#e2b400;--team-tint:#fff9d9;--team-ink:#695500}
+[data-team-color="3"]{--team-color:#259a55;--team-tint:#eaf8ef;--team-ink:#176438}
+[data-team-color="4"]{--team-color:#8b5cf6;--team-tint:#f3efff;--team-ink:#5b21b6}
+[data-team-color="5"]{--team-color:#ea580c;--team-tint:#fff1e8;--team-ink:#9a3412}
+[data-team-color="6"]{--team-color:#0891b2;--team-tint:#e6faff;--team-ink:#155e75}
+[data-team-color="7"]{--team-color:#db2777;--team-tint:#fff0f7;--team-ink:#9d174d}
+[data-team-color="8"]{--team-color:#8b5e3c;--team-tint:#f6eee7;--team-ink:#654321}
+[data-team-color="9"]{--team-color:#64748b;--team-tint:#f1f5f9;--team-ink:#334155}
+[data-team-color="10"]{--team-color:#65a30d;--team-tint:#f4fce5;--team-ink:#3f6212}
+[data-team-color="11"]{--team-color:#4f46e5;--team-tint:#eef2ff;--team-ink:#3730a3}
+.team-name-chip{display:inline-block;border-left:4px solid var(--team-color,#cbd2dc);padding:2px 5px 2px 7px;background:var(--team-tint,#f7f8fa);color:var(--team-ink,#202631);border-radius:3px;font-weight:650}
+.labelA{border-left:4px solid var(--team-color,#cbd2dc);padding-left:7px;background:var(--team-tint,#fff)}
+.scoreA[data-team-color]{border-color:var(--team-color,#cbd2dc);background:var(--team-tint,#fff)}
+#rankTable input.rank-team[data-team-color]{background:var(--team-tint,#fff);border-color:var(--team-color,#cbd2dc);color:var(--team-ink,#202631);font-weight:700}
+.match-title-row{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:7px}
+.match-title-row h3{margin:0}
+.mini-button{padding:4px 6px;font-size:10px;line-height:1.2;white-space:nowrap}
+.match-head-top{display:flex;justify-content:center;align-items:center;gap:4px;font-size:11px;margin-bottom:3px}
+#rankTable .rally-head .reset-match-b{font-size:9px;padding:3px 4px}
+#undoB{margin-right:2px}
+#toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:1000;background:#203653;color:#fff;padding:9px 14px;border-radius:9px;box-shadow:0 3px 16px #0003;font-size:13px;opacity:0;pointer-events:none;transition:opacity .15s;max-width:calc(100vw - 24px);text-align:center}
+#toast.show{opacity:1}
+.save-note{font-size:11px;opacity:.9;margin-top:3px}
+</style>
+</head>
+<body>
+<header><h1>得点集計ツール</h1><p>① チーム別得点入力　／　② 24位までのチーム割り当て・配点集計</p><div id="saveStatus" class="save-note">入力内容はこのブラウザに自動保存されます。</div></header>
+<main>
+<nav aria-label="集計モード">
+  <button class="tab active" data-tab="teamSection">① チーム別集計</button>
+  <button class="tab" data-tab="rankSection">② 順位・配点集計</button>
+</nav>
+
+<section id="teamSection">
+  <div class="panel">
+    <h2>集計設定</h2>
+    <div class="settings-line">
+      <div class="settings-block field"><label for="teamCountA">チーム数</label><select id="teamCountA"><option value="2">2チーム（12v12）</option><option value="3">3チーム（8v8）</option><option value="4" selected>4チーム（6v6）</option></select></div>
+      <div class="settings-block field"><label for="matchPresetA">試合数</label><select id="matchPresetA"><option value="5" selected>5試合</option><option value="10">10試合</option><option value="custom">その他（自由設定）</option></select></div>
+      <div id="customWrapA" class="settings-block field custom-count hidden"><label for="customCountA">試合数（1〜100）</label><input id="customCountA" type="number" min="1" max="100" step="1" value="7" inputmode="numeric"></div>
+    </div>
+  </div>
+  <div class="panel"><h2>チーム名</h2><div id="teamNamesA" class="row"></div></div>
+  <div class="panel">
+    <h2>試合ごとの得点・ラリー入力</h2><p class="note">試合カードは横にスクロールできます。ラリー名は候補選択・自由入力の両方に対応しています。</p>
+    <div id="matchCardsA" class="match-scroller"></div>
+    <div class="actions"><button class="primary" id="copyA">コピー（1タップ）</button><button id="refreshA">集計を更新</button><button class="danger" id="clearA">得点・ラリーをリセット</button></div>
+  </div>
+  <div class="panel hidden" id="checksPanelA"><h2>警告</h2><div id="checksA"></div></div>
+  <div class="panel"><h2>チーム累計ランキング</h2><div id="rankingA"></div><h3>コピー用テキスト</h3><div id="outputA" class="output" tabindex="0">得点またはラリーを入力してください。</div></div>
+</section>
+
+<section id="rankSection" class="hidden">
+  <div class="panel">
+    <h2>順位・配点設定</h2>
+    <div class="settings-line">
+      <div class="settings-block field"><label for="teamCountB">チーム数</label><select id="teamCountB"><option value="2">2チーム（12v12）</option><option value="3">3チーム（8v8）</option><option value="4" selected>4チーム（6v6）</option><option value="6">6チーム（4v4）</option><option value="8">8チーム（3v3）</option><option value="12">12チーム（2v2）</option></select></div>
+      <div class="settings-block field"><label for="matchPresetB">試合数</label><select id="matchPresetB"><option value="5" selected>5試合</option><option value="10">10試合</option><option value="custom">その他（自由設定）</option></select></div>
+      <div id="customWrapB" class="settings-block field custom-count hidden"><label for="customCountB">試合数（1〜100）</label><input id="customCountB" type="number" min="1" max="100" step="1" value="7" inputmode="numeric"></div>
+      <div class="settings-block field"><label for="pointsMode">配点方式</label><select id="pointsMode"><option value="game">ゲーム内配点（合計298点）</option><option value="mkb" selected>MKB・サバンジ配点（合計310点）</option></select></div>
+    </div>
+    <p class="note">順位は縦方向（1〜24位）です。各試合の列で、その順位のチームを選んでください。チームごとに自由なショートカットキーを設定できます。順位の入力欄にチームのキーを入力すると割り当てられ、次の順位（下の行）へ自動で移動します。Enterで次の順位へ移動、Backspace/Deleteで割り当てを解除できます。Backspaceまたは↑で1つ上の順位へ、↓で下へ、←→で試合列を移動できます。Deleteで割り当て解除、Ctrl/⌘+Zまたは「1つ戻す」で直前の変更を取り消せます。各試合でチーム人数が均等かを確認します。</p>
+  </div>
+  <div class="panel"><h2>チーム名・ショートカット設定</h2><div id="teamNamesB" class="row"></div><div id="shortcutWarningB" class="status bad hidden"></div><p id="rosterCounts" class="note"></p></div>
+  <div class="panel">
+    <h2>24人の順位・チーム割り当て</h2>
+    <div class="table-wrap" id="rankTableWrap">
+      <table id="rankTable"><thead id="rankHead"></thead><tbody id="rankBody"></tbody></table>
+    </div>
+    <div class="actions"><button class="primary" id="copyB">コピー（1タップ）</button><button id="undoB">1つ戻す</button><button id="refreshB">集計を更新</button><button class="danger" id="clearB">割り当て・ラリーを全リセット</button></div>
+  </div>
+  <div class="panel hidden" id="checksPanelB"><h2>警告</h2><div id="checksB"></div></div>
+  <div class="panel"><h2>チーム累計ランキング</h2><div id="rankingB"></div><h3>コピー用テキスト</h3><div id="outputB" class="output" tabindex="0">順位のチーム割り当てを入力してください。</div></div>
+</section>
+
+<datalist id="rallyOptions">
+  <option value="パワフル"></option><option value="アイス"></option><option value="ムーン"></option><option value="トゲゾー"></option><option value="チェリー"></option><option value="どんぐり"></option><option value="くも"></option><option value="ハート"></option><option value="ドリル"></option><option value="ブーメラン"></option><option value="プロペラ"></option><option value="カブ"></option>
+</datalist>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const rallies=['パワフル','アイス','ムーン','トゲゾー','チェリー','どんぐり','くも','ハート','ドリル','ブーメラン','プロペラ','カブ'];
+const pointsGame=[50,40,35,30,20,18,16,14,12,10,9,8,7,6,5,4,3,3,2,2,1,1,1,1];
+const pointsMKB=[30,26,23,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1];
+const defaultNames='ABCDEFGHIJKL'.split('');
+const state={
+ A:{teamCount:4,matchCount:5,names:['A','B','C','D'],matches:[]},
+ B:{teamCount:4,matchCount:5,names:defaultNames.slice(),keys:['1','2','3','4','5','6','7','8','9','0','-','^'],matches:[]},
+ pointsMode:'mkb'
+};
+const STORAGE_KEY='mk8dx_score_aggregation_v9';
+const PREVIOUS_STORAGE_KEY='mk8dx_score_aggregation_v8';
+const allowedA=[2,3,4],allowedB=[2,3,4,6,8,12];
+let undoStackB=[];
+let toastTimer=null;
+function showToast(message){const el=$('toast');if(!el)return;el.textContent=message;el.classList.add('show');if(toastTimer)clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),1800);}
+function loadSavedState(){
+ try{
+  let raw=localStorage.getItem(STORAGE_KEY);
+  const isMigration=!raw;
+  if(!raw)raw=localStorage.getItem(PREVIOUS_STORAGE_KEY);
+  if(!raw)return false;
+  const saved=JSON.parse(raw);if(!saved||!saved.state)return false;
+  for(const key of ['A','B']){
+   const src=saved.state[key];if(!src)continue;const dst=state[key];
+   const allowed=key==='A'?allowedA:allowedB;
+   if(allowed.includes(Number(src.teamCount)))dst.teamCount=Number(src.teamCount);
+   const count=Number(src.matchCount);if(Number.isInteger(count)&&count>=1&&count<=100)dst.matchCount=count;
+   if(Array.isArray(src.names))dst.names=src.names.slice(0,12).map(v=>String(v??''));
+   if(key==='B'&&Array.isArray(src.keys)){dst.keys=src.keys.slice(0,12).map(v=>String(v??''));if(isMigration&&dst.keys[11]==='=')dst.keys[11]='^';while(dst.keys.length<12)dst.keys.push(['1','2','3','4','5','6','7','8','9','0','-','^'][dst.keys.length]);}
+   if(Array.isArray(src.matches))dst.matches=src.matches.slice(0,100).map(m=>({rally:String(m?.rally??''),scores:Array.isArray(m?.scores)?m.scores.slice(0,12).map(v=>String(v??'')):[],teams:Array.isArray(m?.teams)?m.teams.slice(0,24).map(v=>v===''?'':String(v??'')):Array(24).fill('')}));
+  }
+  if(['game','mkb'].includes(saved.pointsMode)){
+   // When migrating v8 settings, upgrade its former default (game points) to the new default (MKB/Sabanji).
+   state.pointsMode=(isMigration&&saved.pointsMode==='game')?'mkb':saved.pointsMode;
+  }
+  return true;
+ }catch(e){return false;}
+}
+function syncSettingsFromState(){
+ $('teamCountA').value=String(state.A.teamCount);
+ $('teamCountB').value=String(state.B.teamCount);
+ function syncMatch(which){const cfg=state[which],preset=$('matchPreset'+which),wrap=$('customWrap'+which),input=$('customCount'+which);if(cfg.matchCount===5||cfg.matchCount===10){preset.value=String(cfg.matchCount);wrap.classList.add('hidden');}else{preset.value='custom';input.value=String(cfg.matchCount);wrap.classList.remove('hidden');}}
+ syncMatch('A');syncMatch('B');
+ $('pointsMode').value=state.pointsMode||'mkb';
+}
+function saveState(){
+ try{localStorage.setItem(STORAGE_KEY,JSON.stringify({state:{A:state.A,B:state.B},pointsMode:$('pointsMode')?.value||'mkb'}));$('saveStatus').textContent='入力内容は自動保存されています。';}
+ catch(e){$('saveStatus').textContent='この環境では自動保存を利用できません。';}
+}
+loadSavedState();
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function teamName(cfg,i){return (cfg.names[i]||'').trim()||String.fromCharCode(65+i);}
+function num(v){if(String(v??'').trim()==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;}
+function makeMatch(teamCount){return {rally:'',scores:Array(teamCount).fill(''),teams:Array(24).fill('')};}
+function ensureMatches(cfg,key){while(cfg.matches.length<cfg.matchCount)cfg.matches.push(makeMatch(cfg.teamCount));cfg.matches=cfg.matches.slice(0,Math.max(cfg.matchCount,cfg.matches.length));cfg.matches.forEach(m=>{if(!Array.isArray(m.scores))m.scores=[];if(!Array.isArray(m.teams))m.teams=Array(24).fill('');while(m.scores.length<cfg.teamCount)m.scores.push('');while(m.teams.length<24)m.teams.push('');});}
+function signed(n){if(n===0)return '±0';return n>0?`+${n}`:String(n);}
+function rankTeams(items){const sorted=items.slice().sort((a,b)=>b.score-a.score||a.index-b.index);let prev=null,rank=0;return sorted.map((x,i)=>{if(i===0||x.score!==prev)rank=i+1;prev=x.score;return {...x,rank};});}
+function rallyList(cfg){return cfg.matches.slice(0,cfg.matchCount).map(m=>(m.rally||'').trim()).filter(Boolean);}
+function latestUsedIndexA(cfg){for(let i=cfg.matchCount-1;i>=0;i--){const m=cfg.matches[i];if((m.rally||'').trim()||m.scores.some(v=>String(v??'').trim()!==''))return i;}return -1;}
+function latestUsedIndexB(cfg){for(let i=cfg.matchCount-1;i>=0;i--){const m=cfg.matches[i];if((m.rally||'').trim()||m.teams.some(v=>String(v??'').trim()!==''))return i;}return -1;}
+function makeCopyText(cfg,totals,latest){if(latest<0)return '得点またはラリーを入力してください。';const rally=(cfg.matches[latest].rally||'').trim();const lines=[`【${latest+1}試合目】${rally}`.trimEnd()];const ranked=rankTeams(totals.map((score,index)=>({score,index,name:teamName(cfg,index)})));ranked.forEach((r,i)=>{if(i===0)lines.push(`${r.rank}位 ${r.name}：${r.score}点`);else lines.push(`${r.rank}位 ${r.name}：${r.score}点（${signed(r.score-ranked[i-1].score)}）`);});lines.push(`走ったラリー：${rallyList(cfg).join(' ')}`);return lines.join('\n');}
+function selectedPoints(){return $('pointsMode').value==='mkb'?pointsMKB:pointsGame;}
+
+// ---------------- Section 1 ----------------
+function resizeA(){ensureMatches(state.A,'A');}
+function renderTeamNamesA(){const cfg=state.A,box=$('teamNamesA');box.innerHTML='';for(let i=0;i<cfg.teamCount;i++){const d=document.createElement('div');d.className='field team-name-field team-color-field';if(i<12)d.dataset.teamColor=String(i);d.innerHTML=`<label for="nameA${i}">チーム${i+1}名</label><input id="nameA${i}" maxlength="40" value="${esc(teamName(cfg,i))}">`;box.appendChild(d);d.querySelector('input').addEventListener('input',e=>{cfg.names[i]=e.target.value;updateA();});}}
+function renderMatchesA(){const cfg=state.A;resizeA();const box=$('matchCardsA');box.innerHTML='';for(let i=0;i<cfg.matchCount;i++){const m=cfg.matches[i];const card=document.createElement('div');card.className='panel match-card';card.dataset.match=i;card.innerHTML=`<div class="match-title-row"><h3>${i+1}試合目</h3><button type="button" class="mini-button reset-match-a" data-match="${i}">この試合をリセット</button></div><div class="field"><label for="rallyA${i}">走ったラリー</label><input id="rallyA${i}" class="rally-input" list="rallyOptions" data-match="${i}" value="${esc(m.rally)}" placeholder="例：アイス"></div><table><thead><tr><th>チーム</th><th>得点</th></tr></thead><tbody>${Array.from({length:cfg.teamCount},(_,t)=>`<tr><td class="labelA" data-team="${t}" data-team-color="${t<12?t:'other'}">${esc(teamName(cfg,t))}</td><td><input type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" class="scoreA" data-team-color="${t<12?t:'other'}" data-match="${i}" data-team="${t}" value="${esc(m.scores[t]??'')}" placeholder="得点" aria-label="${i+1}試合目 ${esc(teamName(cfg,t))}得点"></td></tr>`).join('')}</tbody></table><div class="status" id="statusA${i}">未入力</div>`;box.appendChild(card);}}
+function renderRanking(elementId,cfg,totals){const ranked=rankTeams(totals.map((score,index)=>({score,index,name:teamName(cfg,index)})));$(elementId).innerHTML=`<div class="table-wrap"><table><thead><tr><th>順位</th><th>チーム</th><th>累計得点</th><th>直前との差</th></tr></thead><tbody>${ranked.map((r,i)=>`<tr><td class="rank">${r.rank}位</td><td><span class="team-name-chip" data-team-color="${r.index<12?r.index:'other'}">${esc(r.name)}</span></td><td>${r.score}点</td><td>${i===0?'—':signed(r.score-ranked[i-1].score)}</td></tr>`).join('')}</tbody></table></div>`;}
+function updateA(){
+ const cfg=state.A,totals=Array(cfg.teamCount).fill(0),warnings=[];let hasAny=false;
+ document.querySelectorAll('.labelA').forEach(el=>{el.textContent=teamName(cfg,Number(el.dataset.team));});
+ for(let i=0;i<cfg.matchCount;i++){
+  const m=cfg.matches[i],values=Array.from({length:cfg.teamCount},(_,t)=>num(m.scores[t]??''));
+  const filled=m.scores.slice(0,cfg.teamCount).filter(v=>String(v??'').trim()!=='').length;
+  const invalid=m.scores.slice(0,cfg.teamCount).some(v=>String(v??'').trim()!==''&&(num(v)===null||num(v)<0||!Number.isInteger(num(v))));
+  const sum=values.reduce((a,v)=>a+(v!==null&&v>=0&&Number.isInteger(v)?v:0),0);
+  values.forEach((v,t)=>{if(v!==null&&v>=0&&Number.isInteger(v))totals[t]+=v;});
+  const used=(m.rally||'').trim()!==''||filled>0;hasAny=hasAny||used;
+  let msg='未入力',cls='';
+  if(!used){msg='未入力';}
+  else if(invalid){msg=`${i+1}試合目：警告 — 得点は0以上の整数で入力してください`;cls='bad';}
+  else if(filled<cfg.teamCount){msg=`入力途中（${filled}/${cfg.teamCount}チーム）`;}
+  else if(sum!==298){msg=`${i+1}試合目：警告 — 合計${sum}点（298点との差 ${signed(sum-298)}点）`;cls='bad';}
+  else{msg='OK（合計298点）';cls='good';}
+  const status=$(`statusA${i}`);if(status){status.className='status '+cls;status.textContent=msg;}
+  if(cls==='bad')warnings.push(`<div class="status bad">${esc(msg)}</div>`);
+ }
+ $('checksA').innerHTML=warnings.join('');$('checksPanelA').classList.toggle('hidden',warnings.length===0);
+ renderRanking('rankingA',cfg,totals);$('outputA').textContent=hasAny?makeCopyText(cfg,totals,latestUsedIndexA(cfg)):'得点またはラリーを入力してください。';saveState();
+}
+
+// ---------------- Section 2: ranks vertical, matches horizontal ----------------
+function resizeB(){ensureMatches(state.B,'B');}
+function renderTeamNamesB(){
+ const cfg=state.B,box=$('teamNamesB');box.innerHTML='';
+ for(let i=0;i<cfg.teamCount;i++){
+  const d=document.createElement('div');d.className='field team-name-field team-color-field';if(i<12)d.dataset.teamColor=String(i);
+  d.innerHTML=`<div class="team-config-row"><div class="field"><label for="nameB${i}">チーム${i+1}名</label><input id="nameB${i}" maxlength="40" value="${esc(teamName(cfg,i))}"></div><div class="field key-field"><label for="keyB${i}">割当キー</label><input id="keyB${i}" class="team-key" maxlength="1" autocomplete="off" autocapitalize="off" value="${esc(cfg.keys[i]||'')}"></div></div>`;
+  box.appendChild(d);
+  d.querySelector(`#nameB${i}`).addEventListener('input',e=>{cfg.names[i]=e.target.value;updateAssignedCellLabelsB();updateB();});
+  d.querySelector(`#keyB${i}`).addEventListener('input',e=>{const value=e.target.value.slice(-1).toLowerCase();e.target.value=value;cfg.keys[i]=value;updateShortcutWarningB();saveState();});
+ }
+ updateShortcutWarningB();
+}
+function updateShortcutWarningB(){
+ const cfg=state.B,seen=new Map(),dupes=[];
+ cfg.keys.slice(0,cfg.teamCount).forEach((key,i)=>{const k=(key||'').trim().toLowerCase();if(!k)return;if(seen.has(k)){if(!dupes.includes(k))dupes.push(k);}else seen.set(k,i);});
+ const el=$('shortcutWarningB');
+ if(dupes.length){el.textContent=`ショートカットキーが重複しています（${dupes.map(k=>`「${k}」`).join('、')}）。各チームに異なるキーを設定してください。`;el.classList.remove('hidden');}
+ else{el.textContent='';el.classList.add('hidden');}
+}
+function renderRankTableB(){
+ const cfg=state.B;resizeB();const points=selectedPoints();
+ $('rankHead').innerHTML=`<tr><th class="rank-col" rowspan="2">順位</th><th class="point-col" rowspan="2">配点</th>${Array.from({length:cfg.matchCount},(_,m)=>`<th class="rally-head"><div class="match-head-top"><span>${m+1}試合目</span><button type="button" class="reset-match-b" data-match="${m}" title="この試合をリセット">↺</button></div><input list="rallyOptions" class="rallyB" data-match="${m}" value="${esc(cfg.matches[m].rally)}" placeholder="ラリー名" aria-label="${m+1}試合目のラリー"></th>`).join('')}</tr><tr>${Array.from({length:cfg.matchCount},()=>`<th class="match-col">割当キー</th>`).join('')}</tr>`;
+ let rows='';
+ for(let rank=0;rank<24;rank++){
+  rows+=`<tr><td class="rank-col rank-label">${rank+1}位</td><td class="point-col">${points[rank]}</td>${Array.from({length:cfg.matchCount},(_,m)=>{
+   const selected=cfg.matches[m].teams[rank]??'';const shown=selected!==''&&Number.isInteger(Number(selected))&&Number(selected)<cfg.teamCount?teamName(cfg,Number(selected)):'';
+   return `<td class="match-col"><input type="text" class="rank-team" data-rank="${rank}" data-match="${m}" data-selected="${esc(selected)}" data-team-color="${selected!==''&&Number(selected)<12?esc(selected):'other'}" value="${esc(shown)}" placeholder="キーを入力" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="${m+1}試合目 ${rank+1}位のチーム。ショートカットキーを入力"></td>`;
+  }).join('')}</tr>`;
+ }
+ $('rankBody').innerHTML=rows;
+}
+function updateAssignedCellLabelsB(){document.querySelectorAll('.rank-team').forEach(el=>{const selected=el.dataset.selected??'';if(selected!==''&&Number.isInteger(Number(selected))&&Number(selected)<state.B.teamCount){el.value=teamName(state.B,Number(selected));el.dataset.teamColor=Number(selected)<12?String(Number(selected)):'other';}else{el.value='';el.dataset.teamColor='other';}});}
+function updateCountsB(){const cfg=state.B;const expected=24/cfg.teamCount;$('rosterCounts').textContent=`各試合の目標人数：${cfg.names.slice(0,cfg.teamCount).map((_,i)=>`${teamName(cfg,i)} ${expected}人`).join(' ／ ')}（合計24人）`; }
+function updateB(){
+ const cfg=state.B,pts=selectedPoints(),totals=Array(cfg.teamCount).fill(0),warnings=[];let any=false;
+ const expectedPlayers=24/cfg.teamCount;
+ for(let m=0;m<cfg.matchCount;m++){
+  const match=cfg.matches[m],counts=Array(cfg.teamCount).fill(0);let filled=0;
+  match.teams.forEach((team,rank)=>{if(team!==''&&team!==null&&Number.isInteger(Number(team))&&Number(team)>=0&&Number(team)<cfg.teamCount){filled++;counts[Number(team)]++;totals[Number(team)]+=pts[rank];}});
+  const used=(match.rally||'').trim()!==''||filled>0;any=any||used;
+  const distribution=counts.map((n,i)=>`${teamName(cfg,i)} ${n}/${expectedPlayers}人`).join(' ／ ');
+  const overQuota=counts.some(n=>n>expectedPlayers),balanced=counts.every(n=>n===expectedPlayers);
+  if(used && overQuota){warnings.push(`<div class="status bad">${m+1}試合目：警告 — チーム人数が上限を超えています（${esc(distribution)}）</div>`);}
+  else if(filled===24&&!balanced){warnings.push(`<div class="status bad">${m+1}試合目：警告 — 各チームを${expectedPlayers}人ずつにしてください（${esc(distribution)}）</div>`);}
+ }
+ $('checksB').innerHTML=warnings.join('');$('checksPanelB').classList.toggle('hidden',warnings.length===0);
+ updateCountsB();renderRanking('rankingB',cfg,totals);$('outputB').textContent=any?makeCopyText(cfg,totals,latestUsedIndexB(cfg)):'順位のチーム割り当てを入力してください。';saveState();
+}
+
+// Copy button feedback is shown as a small toast instead of a blocking alert.
+async function copyOutput(element){const text=element.textContent||'';if(!text.trim()){showToast('コピーする内容がありません');return;}try{if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(text);showToast('コピーしました');return;}}catch(e){}
+ const area=document.createElement('textarea');area.value=text;area.setAttribute('readonly','');area.style.position='fixed';area.style.top='0';area.style.left='0';area.style.width='1px';area.style.height='1px';area.style.opacity='0.01';document.body.appendChild(area);area.focus();area.select();area.setSelectionRange(0,area.value.length);let ok=false;try{ok=document.execCommand('copy');}catch(e){}area.remove();if(ok){showToast('コピーしました');return;}selectOutput(element);showToast('自動コピー不可：選択されたテキストをコピーしてください');}
+function selectOutput(element){const range=document.createRange();range.selectNodeContents(element);const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);}
+function applyCountA(){const preset=$('matchPresetA').value;$('customWrapA').classList.toggle('hidden',preset!=='custom');if(preset!=='custom'){state.A.matchCount=Number(preset);resizeA();renderMatchesA();updateA();}else{applyCustomCountA();}}
+function applyCustomCountA(){const n=num($('customCountA').value);if(n===null||!Number.isInteger(n)||n<1||n>100)return;state.A.matchCount=n;resizeA();renderMatchesA();updateA();}
+function applyCountB(){const preset=$('matchPresetB').value;$('customWrapB').classList.toggle('hidden',preset!=='custom');if(preset!=='custom'){state.B.matchCount=Number(preset);resizeB();renderRankTableB();updateB();}else{applyCustomCountB();}}
+function applyCustomCountB(){const n=num($('customCountB').value);if(n===null||!Number.isInteger(n)||n<1||n>100)return;state.B.matchCount=n;resizeB();renderRankTableB();updateB();}
+function changeTeamCountA(){const next=Number($('teamCountA').value);state.A.teamCount=next;state.A.matches.forEach(m=>{while(m.scores.length<next)m.scores.push('');});renderTeamNamesA();renderMatchesA();updateA();}
+function changeTeamCountB(){const next=Number($('teamCountB').value);state.B.teamCount=next;state.B.matches.forEach(m=>m.teams=m.teams.map(t=>t===''?'':(Number(t)<next?String(Number(t)):'')));renderTeamNamesB();renderRankTableB();updateB();}
+
+// Tabs
+ document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b===btn));$('teamSection').classList.toggle('hidden',btn.dataset.tab!=='teamSection');$('rankSection').classList.toggle('hidden',btn.dataset.tab!=='rankSection');}));
+// Settings
+$('teamCountA').addEventListener('change',changeTeamCountA);$('matchPresetA').addEventListener('change',applyCountA);$('customCountA').addEventListener('change',applyCustomCountA);
+$('teamCountB').addEventListener('change',changeTeamCountB);$('matchPresetB').addEventListener('change',applyCountB);$('customCountB').addEventListener('change',applyCustomCountB);$('pointsMode').addEventListener('change',()=>{renderRankTableB();updateB();});
+// Section 1 editing: Enter moves down the score inputs, no spinner controls.
+$('matchCardsA').addEventListener('input',e=>{const el=e.target;const mi=Number(el.dataset.match);if(!Number.isInteger(mi)||!state.A.matches[mi])return;if(el.classList.contains('rally-input'))state.A.matches[mi].rally=el.value;if(el.classList.contains('scoreA'))state.A.matches[mi].scores[Number(el.dataset.team)]=el.value;updateA();});
+$('matchCardsA').addEventListener('keydown',e=>{
+ const el=e.target;if(!el.classList.contains('scoreA')||e.key!=='Enter')return;e.preventDefault();
+ const all=[...$('matchCardsA').querySelectorAll('.scoreA')],index=all.indexOf(el);if(index>=0&&index+1<all.length){all[index+1].focus();all[index+1].select?.();}
+});
+// Section 2 editing, keyboard navigation, undo history.
+$('rankTable').addEventListener('input',e=>{const el=e.target;if(!el.classList.contains('rallyB'))return;const m=Number(el.dataset.match);if(state.B.matches[m])state.B.matches[m].rally=el.value;updateB();});
+function focusRankCell(matchIndex,rankIndex,select=true){
+ const cfg=state.B;if(matchIndex<0||matchIndex>=cfg.matchCount||rankIndex<0||rankIndex>=24)return;
+ const next=$('rankTable').querySelector(`.rank-team[data-match="${matchIndex}"][data-rank="${rankIndex}"]`);
+ if(next)setTimeout(()=>{next.focus();if(select)next.select();},0);
+}
+function focusNextRank(matchIndex,rankIndex){focusRankCell(matchIndex,rankIndex+1,true);}
+function pushUndo(action){undoStackB.push(action);if(undoStackB.length>500)undoStackB.shift();$('undoB').disabled=undoStackB.length===0;}
+function assignRankCell(el,teamIndex,advance=true){
+ const m=Number(el.dataset.match),r=Number(el.dataset.rank);if(!state.B.matches[m]||teamIndex<0||teamIndex>=state.B.teamCount)return;
+ const old=state.B.matches[m].teams[r]??'';const next=String(teamIndex);if(old!==next)pushUndo({type:'cell',m,r,old});
+ state.B.matches[m].teams[r]=next;el.dataset.selected=next;el.value=teamName(state.B,teamIndex);el.dataset.teamColor=teamIndex<12?String(teamIndex):'other';updateB();
+ if(advance)focusNextRank(m,r);
+}
+function clearRankCell(el){const m=Number(el.dataset.match),r=Number(el.dataset.rank),old=state.B.matches[m].teams[r]??'';if(old!==''){pushUndo({type:'cell',m,r,old});state.B.matches[m].teams[r]='';el.dataset.selected='';el.value='';el.dataset.teamColor='other';updateB();}}
+function undoLastB(){
+ const action=undoStackB.pop();if(!action){showToast('取り消す操作がありません');return;}
+ if(action.type==='cell'){state.B.matches[action.m].teams[action.r]=action.old;}
+ else if(action.type==='match'){state.B.matches[action.m]={rally:action.old.rally,scores:action.old.scores.slice(),teams:action.old.teams.slice()};}
+ else if(action.type==='allB'){state.B.matches=action.old.map(m=>({rally:m.rally,scores:m.scores.slice(),teams:m.teams.slice()}));}
+ renderRankTableB();updateB();$('undoB').disabled=undoStackB.length===0;showToast('1つ前の操作に戻しました');
+}
+function keyTeamIndex(key){const cfg=state.B,k=String(key||'').toLowerCase();const matches=[];for(let i=0;i<cfg.teamCount;i++){if((cfg.keys[i]||'').trim().toLowerCase()===k&&k)matches.push(i);}return matches.length===1?matches[0]:-1;}
+function moveCell(el,dm,dr){focusRankCell(Number(el.dataset.match)+dm,Number(el.dataset.rank)+dr,true);}
+$('rankTable').addEventListener('focusin',e=>{if(e.target.classList.contains('rank-team'))setTimeout(()=>e.target.select(),0);});
+$('rankTable').addEventListener('keydown',e=>{
+ const el=e.target;if(!el.classList.contains('rank-team'))return;const m=Number(el.dataset.match),r=Number(el.dataset.rank);
+ if(e.ctrlKey&&e.key.toLowerCase()==='z'||e.metaKey&&e.key.toLowerCase()==='z'){e.preventDefault();undoLastB();return;}
+ if(e.key==='Enter'||e.key==='ArrowDown'){e.preventDefault();moveCell(el,0,1);return;}
+ if(e.key==='ArrowUp'||e.key==='Backspace'){e.preventDefault();moveCell(el,0,-1);return;}
+ if(e.key==='ArrowLeft'){e.preventDefault();moveCell(el,-1,0);return;}
+ if(e.key==='ArrowRight'){e.preventDefault();moveCell(el,1,0);return;}
+ if(e.key==='Delete'){e.preventDefault();clearRankCell(el);return;}
+ if(e.ctrlKey||e.metaKey||e.altKey||e.key.length!==1)return;
+ e.preventDefault();const team=keyTeamIndex(e.key);if(team>=0)assignRankCell(el,team,true);else updateShortcutWarningB();
+});
+$('rankTable').addEventListener('click',e=>{const button=e.target.closest('.reset-match-b');if(!button)return;const m=Number(button.dataset.match);if(!Number.isInteger(m)||!state.B.matches[m])return;if(!confirm(`${m+1}試合目のラリー名とチーム割り当てをリセットしますか？`))return;const old=state.B.matches[m];pushUndo({type:'match',m,old:{rally:old.rally,scores:old.scores.slice(),teams:old.teams.slice()}});state.B.matches[m]={rally:'',scores:Array(state.B.teamCount).fill(''),teams:Array(24).fill('')};renderRankTableB();updateB();showToast(`${m+1}試合目をリセットしました`);});
+// Buttons
+$('copyA').addEventListener('click',()=>copyOutput($('outputA')));$('copyB').addEventListener('click',()=>copyOutput($('outputB')));$('refreshA').addEventListener('click',updateA);$('refreshB').addEventListener('click',updateB);$('undoB').addEventListener('click',undoLastB);
+$('matchCardsA').addEventListener('click',e=>{const button=e.target.closest('.reset-match-a');if(!button)return;const m=Number(button.dataset.match);if(!state.A.matches[m])return;if(!confirm(`${m+1}試合目の得点とラリー名をリセットしますか？`))return;state.A.matches[m].rally='';state.A.matches[m].scores=Array(state.A.teamCount).fill('');renderMatchesA();updateA();showToast(`${m+1}試合目をリセットしました`);});
+$('clearA').addEventListener('click',()=>{if(!confirm('①の全試合の得点とラリー名をリセットしますか？'))return;state.A.matches.forEach(m=>{m.rally='';m.scores=Array(state.A.teamCount).fill('');});renderMatchesA();updateA();showToast('①の入力をリセットしました');});
+$('clearB').addEventListener('click',()=>{if(!confirm('②の全試合のチーム割り当てとラリー名をリセットしますか？'))return;pushUndo({type:'allB',old:state.B.matches.map(m=>({rally:m.rally,scores:m.scores.slice(),teams:m.teams.slice()}))});state.B.matches.forEach(m=>{m.rally='';m.teams=Array(24).fill('');});renderRankTableB();updateB();showToast('②の入力をリセットしました');});
+
+// Initial display; restore saved input and settings first.
+syncSettingsFromState();resizeA();renderTeamNamesA();renderMatchesA();updateA();resizeB();renderTeamNamesB();renderRankTableB();updateB();$('undoB').disabled=true;
+})();
+</script>
+</body>
+</html>
