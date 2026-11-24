@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>得点集計ツール v17</title>
+<title>得点集計ツール v19</title>
 <style>
 :root{--navy:#203653;--blue:#2459a9;--line:#dce1e8;--muted:#687385;--bg:#f3f5f8;--red:#a61b1b;--green:#17663b}
 *{box-sizing:border-box}
@@ -101,7 +101,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 /* v17 usability additions */
 #extraToolsPanel textarea{min-height:70px}#matchHistory table{min-width:420px}#matchHistory td,#matchHistory th{padding:6px}
 body.overlay-mode #extraToolsPanel{display:block}body.overlay-mode #matchHistoryPanel{display:none}
-#obsOverlay{--obs-alpha:.58;--obs-font:42px;--obs-scale:100%;--obs-top:8px}
+#obsOverlay{--obs-alpha:.58;--obs-font:56px;--obs-scale:100%;--obs-top:8px}
 #obsOverlay .obs-panel{background:rgba(115,115,115,var(--obs-alpha))!important}
 #obsOverlay .obs-team-name{font-size:calc(var(--obs-font)*.75)!important}
 #obsOverlay .obs-team-score{font-size:var(--obs-font)!important}
@@ -215,8 +215,7 @@ body.overlay-mode #obsPasteInput{font-size:15px;min-height:130px}
     <div class="actions"><button id="applyBulkNames" class="primary">名前を一括登録</button><button id="undoUniversal">入力を1つ戻す</button></div>
     <p class="note">一括登録は現在のチーム数／24人分に適用します。空行は無視します。試合数を減らしても、非表示になった試合の入力は保持され、再び増やすと復元されます。</p>
     <div class="row">
-      <div class="field"><label for="tieMode">同点時の順位</label><select id="tieMode"><option value="competition">競技順位（1, 1, 3）</option><option value="dense">密順位（1, 1, 2）</option><option value="ordinal">連番順位（1, 2, 3）</option></select></div>
-      <div class="field"><label for="obsFontSize">OBS文字サイズ</label><input id="obsFontSize" type="range" min="20" max="72" value="42"></div>
+      <div class="field"><label for="obsFontSize">OBS文字サイズ</label><input id="obsFontSize" type="range" min="20" max="72" value="56"></div>
       <div class="field"><label for="obsOpacity">OBS背景の濃さ</label><input id="obsOpacity" type="range" min="20" max="95" value="58"></div>
     </div>
     <div class="row"><div class="field"><label for="obsTop">OBS表示位置（上からpx）</label><input id="obsTop" type="number" min="0" max="1800" value="8"></div><div class="field"><label for="obsScale">OBS表示幅（%）</label><input id="obsScale" type="range" min="50" max="100" value="100"></div></div>
@@ -351,10 +350,9 @@ const allowedA=[2,3,4],allowedB=[2,3,4,6,8,12],allowedC=[2,3,4,6,8,12,24];
 let undoStackB=[];
 let toastTimer=null;
 let externalOverlayData=null;
-let tieMode='competition';
 let universalUndo=[];
 let lastUndoSnapshot='';
-let obsPrefs={font:42,opacity:58,top:8,scale:100};
+let obsPrefs={font:56,opacity:58,top:8,scale:100};
 function showToast(message){const el=$('toast');if(!el)return;el.textContent=message;el.classList.add('show');if(toastTimer)clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),1800);}
 function loadSavedState(){
  try{
@@ -362,8 +360,7 @@ function loadSavedState(){
   if(!raw){for(const key of PREVIOUS_STORAGE_KEYS){raw=localStorage.getItem(key);if(raw){sourceKey=key;break;}}}
   if(!raw)return false;
   const saved=JSON.parse(raw);if(!saved||!saved.state)return false;
-  if(['competition','dense','ordinal'].includes(saved.tieMode))tieMode=saved.tieMode;
-  if(saved.obsPrefs&&typeof saved.obsPrefs==='object')obsPrefs={...obsPrefs,...saved.obsPrefs};
+  if(saved.obsPrefs&&typeof saved.obsPrefs==='object'){obsPrefs={...obsPrefs,...saved.obsPrefs};if(Number(saved.obsPrefs.font)===42)obsPrefs.font=56;}
   for(const key of ['A','B']){
    const src=saved.state[key];if(!src)continue;const dst=state[key];
    const allowed=key==='A'?allowedA:allowedB;
@@ -405,7 +402,7 @@ function syncSettingsFromState(){
 }
 function saveState(){
  try{
-  const payload={state:{A:state.A,B:state.B,C:state.C},pointsMode:state.pointsMode,activeTeamMode:state.activeTeamMode,externalOverlayData,tieMode,obsPrefs};
+  const payload={state:{A:state.A,B:state.B,C:state.C},pointsMode:state.pointsMode,activeTeamMode:state.activeTeamMode,externalOverlayData,obsPrefs};
   const raw=JSON.stringify(payload);localStorage.setItem(STORAGE_KEY,raw);
   $('saveStatus').textContent='入力内容は自動保存されています。';
  }catch(e){$('saveStatus').textContent='この環境では自動保存を利用できません。';}
@@ -425,7 +422,7 @@ function configForRallyMode(mode){return mode==='A'?state.A:(mode==='B'?state.B:
 function updateRallyControl(selectEl){const mode=selectEl.dataset.mode,m=Number(selectEl.dataset.match),cfg=configForRallyMode(mode);if(!cfg.matches[m])return;const custom=selectEl.parentElement.querySelector('.rally-custom');if(selectEl.value===CUSTOM_RALLY_VALUE){custom?.classList.remove('hidden');cfg.matches[m].rally=custom?.value??cfg.matches[m].rally;custom?.focus();}else{custom?.classList.add('hidden');cfg.matches[m].rally=selectEl.value;}if(mode==='A')updateA();else if(mode==='B')updateB();else updateC();}
 function updateCustomRallyInput(inputEl){const mode=inputEl.dataset.mode,m=Number(inputEl.dataset.match),cfg=configForRallyMode(mode);if(!cfg.matches[m])return;cfg.matches[m].rally=inputEl.value;if(mode==='A')updateA();else if(mode==='B')updateB();else updateC();}
 function signed(n){if(n===0)return '±0';return n>0?`+${n}`:String(n);}
-function rankTeams(items){const sorted=items.slice().sort((a,b)=>b.score-a.score||a.index-b.index);let prev=null,rank=0,dense=0;return sorted.map((x,i)=>{if(i===0||x.score!==prev){dense++;rank=tieMode==='ordinal'?i+1:(tieMode==='dense'?dense:i+1);}prev=x.score;return {...x,rank};});}
+function rankTeams(items){const sorted=items.slice().sort((a,b)=>b.score-a.score||a.index-b.index);let prev=null,rank=0;return sorted.map((x,i)=>{if(i===0||x.score!==prev)rank=i+1;prev=x.score;return {...x,rank};});}
 function rallyList(cfg){return cfg.matches.slice(0,cfg.matchCount).map(m=>(m.rally||'').trim()).filter(Boolean);}
 function latestUsedIndexA(cfg){for(let i=cfg.matchCount-1;i>=0;i--){const m=cfg.matches[i];if((m.rally||'').trim()||m.scores.some(v=>String(v??'').trim()!==''))return i;}return -1;}
 function latestUsedIndexB(cfg){for(let i=cfg.matchCount-1;i>=0;i--){const m=cfg.matches[i];if((m.rally||'').trim()||m.teams.some(v=>String(v??'').trim()!==''))return i;}return -1;}
@@ -467,9 +464,9 @@ function renderTeamNamesC(){
 }
 
 // v17 universal undo, history, settings, and bulk-name tools
-function snapshotForUndo(){return JSON.stringify({state,externalOverlayData,tieMode,obsPrefs});}
+function snapshotForUndo(){return JSON.stringify({state,externalOverlayData,obsPrefs});}
 function rememberUndo(){const snap=snapshotForUndo();if(snap===lastUndoSnapshot)return;universalUndo.push(lastUndoSnapshot||snap);if(universalUndo.length>60)universalUndo.shift();lastUndoSnapshot=snap;$('undoUniversal').disabled=universalUndo.length===0;}
-function restoreUniversalUndo(){if(!universalUndo.length){showToast('戻せる操作がありません');return;}const snap=universalUndo.pop();try{const obj=JSON.parse(snap);Object.assign(state,obj.state);externalOverlayData=obj.externalOverlayData||null;tieMode=obj.tieMode||'competition';obsPrefs=obj.obsPrefs||obsPrefs;syncSettingsFromState();renderTeamNamesA();renderMatchesA();renderTeamNamesB();renderRankTableB();ensurePlayersC();renderTeamNamesC();renderCustomPointsC();renderIndividualTableC();updateA();updateB();updateC();renderOverlay();applyObsPrefs();$('undoUniversal').disabled=!universalUndo.length;lastUndoSnapshot=snapshotForUndo();showToast('直前の入力を戻しました');}catch(e){showToast('取り消しに失敗しました');}}
+function restoreUniversalUndo(){if(!universalUndo.length){showToast('戻せる操作がありません');return;}const snap=universalUndo.pop();try{const obj=JSON.parse(snap);Object.assign(state,obj.state);externalOverlayData=obj.externalOverlayData||null;obsPrefs=obj.obsPrefs||obsPrefs;syncSettingsFromState();renderTeamNamesA();renderMatchesA();renderTeamNamesB();renderRankTableB();ensurePlayersC();renderTeamNamesC();renderCustomPointsC();renderIndividualTableC();updateA();updateB();updateC();renderOverlay();applyObsPrefs();$('undoUniversal').disabled=!universalUndo.length;lastUndoSnapshot=snapshotForUndo();showToast('直前の入力を戻しました');}catch(e){showToast('取り消しに失敗しました');}}
 function applyObsPrefs(){const el=$('obsOverlay');if(!el)return;el.style.setProperty('--obs-font',`${obsPrefs.font}px`);el.style.setProperty('--obs-alpha',String(obsPrefs.opacity/100));el.style.setProperty('--obs-scale',`${obsPrefs.scale}%`);el.style.setProperty('--obs-top',`${obsPrefs.top}px`);el.style.transform=`translateY(${obsPrefs.top}px) scale(${obsPrefs.scale/100})`;el.style.transformOrigin='top center';}
 function renderMatchHistory(){const cfg=state.activeTeamMode==='B'?state.B:(state.activeTeamMode==='C'?state.C:state.A);const mode=state.activeTeamMode||'A';let rows=[];for(let m=0;m<cfg.matchCount;m++){let entries=[];if(mode==='A'){cfg.names.slice(0,cfg.teamCount).forEach((n,i)=>{const score=num(cfg.matches[m]?.scores?.[i]);if(score!==null)entries.push(`${teamName(cfg,i)} ${score}点`);});}else if(mode==='B'){const totals=Array(cfg.teamCount).fill(0);(cfg.matches[m]?.teams||[]).forEach((t,r)=>{if(t!==''&&Number(t)>=0&&Number(t)<cfg.teamCount)totals[Number(t)]+=selectedPoints()[r]||0;});entries=totals.map((v,i)=>`${teamName(cfg,i)} ${v}点`);}else{const res=calculateIndividualC();const totals=Array(cfg.teamCount).fill(0);state.C.players.forEach((p,i)=>{const r=num(p.ranks[m]);if(r!==null&&r>=1&&r<=24)totals[individualTeamIndex(i)]+=selectedPointsC()[r-1]||0;});entries=totals.map((v,i)=>`${displayTeamNameC(i)} ${v}点`);}const rally=(cfg.matches[m]?.rally||'').trim();if(rally||entries.some(x=>!x.endsWith('0点')||x.includes(' 0点')))rows.push(`<tr><td>${m+1}</td><td>${esc(rally||'—')}</td><td>${esc(entries.join(' ／ ')||'未入力')}</td></tr>`);} $('matchHistory').innerHTML=rows.length?`<div class="table-wrap"><table><thead><tr><th>試合</th><th>ラリー</th><th>チーム別得点</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`:'入力すると履歴が表示されます。';}
 function applyBulkNames(){const target=$('bulkTarget').value;const names=$('bulkNames').value.split(/\r?\n|,/).map(x=>x.trim()).filter(Boolean);if(!names.length){showToast('名前を入力してください');return;}rememberUndo();if(target==='players'){ensurePlayersC();names.slice(0,24).forEach((n,i)=>state.C.players[i].name=n);renderIndividualTableC();updateC();}else{const cfg=state[target],count=cfg.teamCount;names.slice(0,count).forEach((n,i)=>cfg.names[i]=n);if(target==='A'){renderTeamNamesA();renderMatchesA();updateA();}if(target==='B'){renderTeamNamesB();renderRankTableB();updateB();}if(target==='C'){renderTeamNamesC();renderIndividualTableC();updateC();}}$('bulkNames').value='';showToast(`${Math.min(names.length,target==='players'?24:state[target].teamCount)}件を登録しました`);}
@@ -478,7 +475,7 @@ function attachV17Tools(){
  document.addEventListener('input',e=>{if(e.target.matches('input,textarea,select')&&!['bulkNames','obsPasteInput'].includes(e.target.id))rememberUndo();},true);
  document.addEventListener('click',e=>{if(e.target.closest('button')&&!['undoUniversal','copyA','copyB','copyC','copyObsUrl','copyObsUrlTop'].includes(e.target.id))rememberUndo();},true);
  $('undoUniversal').addEventListener('click',restoreUniversalUndo);$('applyBulkNames').addEventListener('click',applyBulkNames);
- $('tieMode').value=tieMode;$('obsFontSize').value=String(obsPrefs.font);$('obsOpacity').value=String(obsPrefs.opacity);$('obsTop').value=String(obsPrefs.top);$('obsScale').value=String(obsPrefs.scale);$('tieMode').addEventListener('change',()=>{tieMode=$('tieMode').value;updateA();updateB();updateC();});
+ $('obsFontSize').value=String(obsPrefs.font);$('obsOpacity').value=String(obsPrefs.opacity);$('obsTop').value=String(obsPrefs.top);$('obsScale').value=String(obsPrefs.scale);
  [['obsFontSize','font'],['obsOpacity','opacity'],['obsTop','top'],['obsScale','scale']].forEach(([id,key])=>$(id).addEventListener('input',()=>{obsPrefs[key]=Number($(id).value);applyObsPrefs();}));
  document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{renderMatchHistory();}));
 }
