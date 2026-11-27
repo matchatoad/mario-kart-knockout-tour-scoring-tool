@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>得点集計ツール v20</title>
+<title>マリオカートワールド サバイバルモード自動得点集計ツール</title>
 <style>
-:root{--navy:#203653;--blue:#2459a9;--line:#dce1e8;--muted:#687385;--bg:#f3f5f8;--red:#a61b1b;--green:#17663b}
+:root{--navy:#203653;--blue:#2459a9;--line:#dce1e8;--muted:#687385;--bg:#f3f5f8;--red:#a61b1b;--green:#17663b;--obs-height:320px}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:#202631;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.4}
 header{background:var(--navy);color:#fff;padding:12px 14px}
-header h1{font-size:20px;margin:0}header p{font-size:12px;margin:3px 0 0;opacity:.9}
+header h1{font-size:20px;line-height:1.2;margin:0}header p{font-size:12px;margin:5px 0 0;opacity:.9}.version-label{display:inline-block;margin-top:6px;padding:2px 7px;border:1px solid rgba(255,255,255,.35);border-radius:5px;font-size:11px;font-weight:700;letter-spacing:.04em;color:rgba(255,255,255,.94)}
 main{max-width:1200px;margin:auto;padding:9px}
 nav{display:flex;gap:7px;margin-bottom:9px;flex-wrap:wrap}
 button,input,select{font:inherit}button{padding:8px 10px;border:1px solid #ccd2dc;border-radius:7px;background:#fff;cursor:pointer;font-size:14px}
@@ -112,11 +112,11 @@ body.overlay-mode #extraToolsPanel{display:block}body.overlay-mode #matchHistory
 #overall-wrapper{min-height:100vh}
 #obsOverlay{display:none}
 body.overlay-mode{background:transparent!important;overflow:hidden;color:#fff}
-body.overlay-mode #overall-wrapper{position:fixed;top:380px;left:0;width:100%;height:calc(100vh - 380px);min-height:240px;overflow-y:auto;overflow-x:hidden;background:var(--bg);z-index:1;-webkit-overflow-scrolling:touch}
+body.overlay-mode #overall-wrapper{position:fixed;top:var(--obs-height);left:0;width:100%;height:calc(100vh - var(--obs-height));min-height:240px;overflow-y:auto;overflow-x:hidden;background:var(--bg);z-index:1;-webkit-overflow-scrolling:touch}
 body.overlay-mode #overall-wrapper>header{position:relative}
 body.overlay-mode #overall-wrapper>main{max-width:1200px;margin:auto;padding:9px}
 body.overlay-mode #toast{z-index:1000}
-#obsOverlay{display:none;position:fixed;z-index:20;left:0;top:0;width:100%;height:380px;padding:14px;font-family:Arial,sans-serif;color:#fff;pointer-events:none;overflow:hidden}
+#obsOverlay{display:none;position:fixed;z-index:20;left:0;top:0;width:100%;height:var(--obs-height);padding:14px;font-family:Arial,sans-serif;color:#fff;pointer-events:none;overflow:hidden}
 body.overlay-mode #obsOverlay{display:block}
 .obs-panel{position:relative;width:100%;max-width:1920px;height:100%;margin:0 auto;background:rgba(178,178,178,.62);border:1px solid rgba(255,255,255,.28);border-radius:24px;padding:10px 18px 12px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
 .obs-scoreboard{position:relative;display:grid;grid-template-columns:repeat(var(--obs-columns,4),minmax(0,1fr));align-items:stretch;height:calc(100% - 42px);padding-bottom:54px}
@@ -134,7 +134,7 @@ body.overlay-mode #obsOverlay{display:block}
 .rally-control{display:flex;flex-direction:column;gap:3px;min-width:0;align-items:center}
 .rally-select{width:100%;min-width:80px;max-width:140px;font-size:11px;padding:4px 2px}
 .rally-custom{width:100%;min-width:80px;max-width:140px;font-size:11px;padding:4px 2px}
-@media(max-width:700px){body.overlay-mode #overall-wrapper{top:300px;height:calc(100vh - 300px)}#obsOverlay{height:300px;padding:6px}.obs-panel{padding:8px 6px 8px;border-radius:14px}.obs-scoreboard{height:calc(100% - 34px);padding-bottom:44px}.obs-team{padding:0 3px}.obs-team-name{font-size:clamp(15px,3.8vw,28px);padding:2px 1px 7px}.obs-team-score{font-size:clamp(20px,4.8vw,36px);padding:6px 1px 3px}.obs-gap{min-width:42px;font-size:clamp(12px,2.5vw,20px);padding:2px 4px}.obs-footer{right:8px;bottom:6px;font-size:clamp(12px,2.4vw,18px)}}
+@media(max-width:700px){#obsOverlay{padding:6px}.obs-panel{padding:8px 6px 8px;border-radius:14px}.obs-scoreboard{height:calc(100% - 34px);padding-bottom:44px}.obs-team{padding:0 3px}.obs-team-name{font-size:clamp(15px,3.8vw,28px);padding:2px 1px 7px}.obs-team-score{font-size:clamp(20px,4.8vw,36px);padding:6px 1px 3px}.obs-gap{min-width:42px;font-size:clamp(12px,2.5vw,20px);padding:2px 4px}.obs-footer{right:8px;bottom:6px;font-size:clamp(12px,2.4vw,18px)}}
 
 /* v12: compact game-score matrix */
 #gameTable{width:max-content;min-width:100%;table-layout:fixed}
@@ -199,7 +199,7 @@ body.overlay-mode #obsPasteInput{font-size:15px;min-height:130px}
 </head>
 <body>
 <div id="overall-wrapper">
-<header><h1>得点集計ツール</h1><p>① ゲーム内配点　／　② 順位・配点集計　／　③ 個人点集計</p><div id="saveStatus" class="save-note">入力内容はこのブラウザに自動保存されます。</div><button type="button" id="copyObsUrlTop" class="header-url-button">OBS URLをコピー</button></header>
+<header><h1>マリオカートワールド<br>サバイバルモード<br>自動得点集計ツール</h1><div class="version-label">Version 1.0.1</div><p>① ゲーム内配点　／　② 順位・配点集計　／　③ 個人点集計</p><div id="saveStatus" class="save-note">入力内容はこのブラウザに自動保存されます。</div><button type="button" id="copyObsUrlTop" class="header-url-button">OBS URLをコピー</button></header>
 <main>
   <section id="obsPastePanel" class="panel obs-paste-panel">
     <h2>順位表示のコピーを貼り付け</h2>
@@ -218,7 +218,8 @@ body.overlay-mode #obsPasteInput{font-size:15px;min-height:130px}
       <div class="field"><label for="obsOpacity">OBS背景の濃さ</label><input id="obsOpacity" type="range" min="20" max="95" value="58"></div>
     </div>
     <div class="row"><div class="field"><label for="obsTop">OBS表示位置（上からpx）</label><input id="obsTop" type="number" min="0" max="1800" value="8"></div><div class="field"><label for="obsScale">OBS表示幅（%）</label><input id="obsScale" type="range" min="50" max="100" value="86"></div></div>
-    <p class="note">この設定はOBS用オーバーレイ画面でのみ表示されます。</p>
+    <div class="row"><div class="field"><label for="obsHeight">OBS高さ</label><input id="obsHeight" type="range" min="220" max="450" value="320"></div></div>
+    <p class="note">この設定はOBS用オーバーレイ画面でのみ表示されます。高さを変えると下側の操作画面の開始位置も自動で調整されます。</p>
   </section>
 <nav aria-label="集計モード">
   <button class="tab active" data-tab="teamSection">① ゲーム内配点</button>
@@ -275,7 +276,7 @@ body.overlay-mode #obsPasteInput{font-size:15px;min-height:130px}
   <div class="panel">
     <h2>個人点集計設定</h2>
     <div class="settings-line">
-      <div class="settings-block field"><label for="teamCountC">チーム数</label><select id="teamCountC"><option value="24">FFA（1v1）</option><option value="2">2チーム（12v12）</option><option value="3">3チーム（8v8）</option><option value="4" selected>4チーム（6v6）</option><option value="6">6チーム（4v4）</option><option value="8">8チーム（3v3）</option><option value="12">12チーム（2v2）</option></select></div>
+      <div class="settings-block field"><label for="teamCountC">チーム数</label><select id="teamCountC"><option value="24">FFA（1v1）</option><option value="12">12チーム（2v2）</option><option value="8">8チーム（3v3）</option><option value="6">6チーム（4v4）</option><option value="4" selected>4チーム（6v6）</option><option value="3">3チーム（8v8）</option><option value="2">2チーム（12v12）</option></select></div>
       <div class="settings-block field"><label for="matchPresetC">試合数</label><select id="matchPresetC"><option value="5" selected>5試合</option><option value="10">10試合</option><option value="custom">その他（自由設定）</option></select></div>
       <div id="customWrapC" class="settings-block field custom-count hidden"><label for="customCountC">試合数（1〜100）</label><input id="customCountC" type="number" min="1" max="100" step="1" value="7" inputmode="numeric"></div>
       <div class="settings-block field"><label for="pointsModeC">配点方式</label><select id="pointsModeC"><option value="game">ゲーム内配点（合計298点）</option><option value="mkb" selected>MKB・サバンジ配点（合計310点）</option><option value="custom">その他（自由入力）</option></select></div>
@@ -331,6 +332,27 @@ body.overlay-mode #obsPasteInput{font-size:15px;min-height:130px}
   <p class="note">専用のOBS用コピーではなく、Discordなどへ投稿する通常の順位表示テキストをそのまま使えます。</p>
 </section>
 
+<section id="changelog" class="panel help-panel">
+  <h2>変更履歴</h2>
+  <h3>ver 1.0.1</h3>
+  <ul>
+    <li>個人点集計の形式選択順を変更</li>
+    <li>OBS表示高さを調整可能に変更</li>
+    <li>タイトルを正式名称へ変更</li>
+    <li>変更履歴機能を追加</li>
+  </ul>
+  <h3>ver 1.0.0</h3>
+  <ul>
+    <li>ゲーム内配点集計を追加</li>
+    <li>順位・配点集計を追加</li>
+    <li>個人点集計を追加</li>
+    <li>OBSオーバーレイ対応</li>
+    <li>プレイヤー名一括登録対応</li>
+    <li>コピー（1タップ）対応</li>
+    <li>ブラウザ自動保存対応</li>
+  </ul>
+</section>
+
 <datalist id="rallyOptions">
   <option value="パワフル"></option><option value="アイス"></option><option value="ムーン"></option><option value="トゲゾー"></option><option value="チェリー"></option><option value="どんぐり"></option><option value="くも"></option><option value="ハート"></option><option value="ドリル"></option><option value="ブーメラン"></option><option value="プロペラ"></option><option value="カブ"></option><option value="ハネ"></option><option value="まねきネコ"></option>
 </datalist>
@@ -353,15 +375,16 @@ const state={
  C:{teamCount:4,names:defaultNames.slice(),matchCount:5,pointsMode:'mkb',customPoints:pointsMKB.map(String),customPointsInitialized:false,players:makeDefaultPlayers(),matches:[]},
  pointsMode:'mkb',activeTeamMode:'A'
 };
-const STORAGE_KEY='mk8dx_score_aggregation_v16';
-const PREVIOUS_STORAGE_KEYS=['mk8dx_score_aggregation_v15','mk8dx_score_aggregation_v14','mk8dx_score_aggregation_v13','mk8dx_score_aggregation_v12','mk8dx_score_aggregation_v11','mk8dx_score_aggregation_v10','mk8dx_score_aggregation_v9','mk8dx_score_aggregation_v8'];
+const STORAGE_KEY='mkwd_ko_score_aggregation_v21';
+const PREVIOUS_STORAGE_KEYS=['mk8dx_score_aggregation_v16','mk8dx_score_aggregation_v15','mk8dx_score_aggregation_v14','mk8dx_score_aggregation_v13','mk8dx_score_aggregation_v12','mk8dx_score_aggregation_v11','mk8dx_score_aggregation_v10','mk8dx_score_aggregation_v9','mk8dx_score_aggregation_v8'];
 const allowedA=[2,3,4],allowedB=[2,3,4,6,8,12],allowedC=[2,3,4,6,8,12,24];
 let undoStackB=[];
 let toastTimer=null;
+let saveStatusTimer=null;
 let externalOverlayData=null;
 let universalUndo=[];
 let lastUndoSnapshot='';
-let obsPrefs={font:72,opacity:58,top:8,scale:86};
+let obsPrefs={font:72,opacity:58,top:8,scale:86,height:320};
 function showToast(message){const el=$('toast');if(!el)return;el.textContent=message;el.classList.add('show');if(toastTimer)clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),1800);}
 function loadSavedState(){
  try{
@@ -369,7 +392,7 @@ function loadSavedState(){
   if(!raw){for(const key of PREVIOUS_STORAGE_KEYS){raw=localStorage.getItem(key);if(raw){sourceKey=key;break;}}}
   if(!raw)return false;
   const saved=JSON.parse(raw);if(!saved||!saved.state)return false;
-  if(saved.obsPrefs&&typeof saved.obsPrefs==='object'){obsPrefs={...obsPrefs,...saved.obsPrefs};if(Number(saved.obsPrefs.font)===42)obsPrefs.font=56;if(Number(saved.obsPrefs.font)===56)obsPrefs.font=72;if(Number(saved.obsPrefs.scale)===100)obsPrefs.scale=86;}
+  if(saved.obsPrefs&&typeof saved.obsPrefs==='object'){obsPrefs={...obsPrefs,...saved.obsPrefs};if(Number(saved.obsPrefs.font)===42)obsPrefs.font=56;if(Number(saved.obsPrefs.font)===56)obsPrefs.font=72;if(Number(saved.obsPrefs.scale)===100)obsPrefs.scale=86;obsPrefs.height=Math.min(450,Math.max(220,Number(obsPrefs.height)||320));}
   for(const key of ['A','B']){
    const src=saved.state[key];if(!src)continue;const dst=state[key];
    const allowed=key==='A'?allowedA:allowedB;
@@ -386,7 +409,7 @@ function loadSavedState(){
   const oldMode=saved.pointsMode;
   if(['game','mkb','custom'].includes(oldMode))state.pointsMode=(sourceKey==='mk8dx_score_aggregation_v8'&&oldMode==='game')?'mkb':oldMode;
   if(['A','B','C'].includes(saved.activeTeamMode))state.activeTeamMode=saved.activeTeamMode;
-  if(saved.externalOverlayData&&saved.externalOverlayData.type==='mk8dx-score-overlay-v1')externalOverlayData=normalizeOverlayData(saved.externalOverlayData);
+  if(saved.externalOverlayData&&['mkwd-ko-overlay-v1','mk8dx-score-overlay-v1'].includes(saved.externalOverlayData.type))externalOverlayData=normalizeOverlayData(saved.externalOverlayData);
   const c=saved.state.C;
   if(c){
    const teamCount=Number(c.teamCount);if(allowedC.includes(teamCount))state.C.teamCount=teamCount;
@@ -413,15 +436,22 @@ function saveState(){
  try{
   const payload={state:{A:state.A,B:state.B,C:state.C},pointsMode:state.pointsMode,activeTeamMode:state.activeTeamMode,externalOverlayData,obsPrefs};
   const raw=JSON.stringify(payload);localStorage.setItem(STORAGE_KEY,raw);
-  $('saveStatus').textContent='入力内容は自動保存されています。';
- }catch(e){$('saveStatus').textContent='この環境では自動保存を利用できません。';}
+  $('saveStatus').textContent='入力内容を保存しました';
+  if(saveStatusTimer)clearTimeout(saveStatusTimer);
+  saveStatusTimer=setTimeout(()=>{$('saveStatus').textContent='入力内容は自動保存されます';},1000);
+ }catch(e){
+  if(e&&(['QuotaExceededError','NS_ERROR_DOM_QUOTA_REACHED'].includes(e.name)||e.code===22||e.code===1014)){
+   $('saveStatus').textContent='保存容量を超えました';showToast('保存容量を超えました');return;
+  }
+  $('saveStatus').textContent='この環境では自動保存を利用できません。';
+ }
 }
 loadSavedState();
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function teamName(cfg,i){return (cfg.names[i]||'').trim()||String.fromCharCode(65+i);}
 function num(v){if(String(v??'').trim()==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;}
 function makeMatch(teamCount){return {rally:'',scores:Array(teamCount).fill(''),teams:Array(24).fill('')};}
-function ensureMatches(cfg,key){while(cfg.matches.length<cfg.matchCount)cfg.matches.push(makeMatch(cfg.teamCount));cfg.matches=cfg.matches.slice(0,Math.max(cfg.matchCount,cfg.matches.length));cfg.matches.forEach(m=>{if(!Array.isArray(m.scores))m.scores=[];if(!Array.isArray(m.teams))m.teams=Array(24).fill('');while(m.scores.length<cfg.teamCount)m.scores.push('');while(m.teams.length<24)m.teams.push('');});}
+function ensureMatches(cfg,key){while(cfg.matches.length<cfg.matchCount)cfg.matches.push(makeMatch(cfg.teamCount));cfg.matches=cfg.matches.slice(0,cfg.matchCount);cfg.matches.forEach(m=>{if(!Array.isArray(m.scores))m.scores=[];if(!Array.isArray(m.teams))m.teams=Array(24).fill('');while(m.scores.length<cfg.teamCount)m.scores.push('');while(m.teams.length<24)m.teams.push('');});}
 const CUSTOM_RALLY_VALUE='__custom_rally__';
 function rallyControlHTML(mode,index,current){
  const value=String(current??''),isPreset=!value||rallies.includes(value),selectValue=isPreset?value:CUSTOM_RALLY_VALUE;
@@ -449,10 +479,10 @@ function initializeCustomPointsC(previousMode){if(!state.C.customPointsInitializ
 function ensurePlayersC(){
  while(state.C.players.length<24)state.C.players.push({name:'',ranks:[]});
  state.C.players=state.C.players.slice(0,24);
- state.C.players.forEach(p=>{if(!Array.isArray(p.ranks))p.ranks=[];while(p.ranks.length<state.C.matchCount)p.ranks.push('');});
+ state.C.players.forEach(p=>{if(!Array.isArray(p.ranks))p.ranks=[];p.ranks=p.ranks.slice(0,state.C.matchCount);while(p.ranks.length<state.C.matchCount)p.ranks.push('');});
  if(!Array.isArray(state.C.matches))state.C.matches=[];
  while(state.C.matches.length<state.C.matchCount)state.C.matches.push({rally:''});
- state.C.matches=state.C.matches.slice(0,Math.max(state.C.matchCount,state.C.matches.length));
+ state.C.matches=state.C.matches.slice(0,state.C.matchCount);
 }
 function individualTeamIndex(playerIndex){if(state.C.teamCount===24)return playerIndex;const perTeam=24/state.C.teamCount;return Math.min(state.C.teamCount-1,Math.floor(playerIndex/perTeam));}
 function displayPlayerNameC(playerIndex){return String(state.C.players[playerIndex]?.name??'').trim()||`プレイヤー${playerIndex+1}`;}
@@ -474,9 +504,9 @@ function renderTeamNamesC(){
 
 // v17 universal undo, history, settings, and bulk-name tools
 function snapshotForUndo(){return JSON.stringify({state,externalOverlayData,obsPrefs});}
-function rememberUndo(){const snap=snapshotForUndo();if(snap===lastUndoSnapshot)return;universalUndo.push(lastUndoSnapshot||snap);if(universalUndo.length>60)universalUndo.shift();lastUndoSnapshot=snap;$('undoUniversal').disabled=universalUndo.length===0;}
+function rememberUndo(){const snap=snapshotForUndo();if(snap===lastUndoSnapshot)return;universalUndo.push(lastUndoSnapshot||snap);if(universalUndo.length>25)universalUndo.shift();lastUndoSnapshot=snap;$('undoUniversal').disabled=universalUndo.length===0;}
 function restoreUniversalUndo(){if(!universalUndo.length){showToast('戻せる操作がありません');return;}const snap=universalUndo.pop();try{const obj=JSON.parse(snap);Object.assign(state,obj.state);externalOverlayData=obj.externalOverlayData||null;obsPrefs=obj.obsPrefs||obsPrefs;syncSettingsFromState();renderTeamNamesA();renderMatchesA();renderTeamNamesB();renderRankTableB();ensurePlayersC();renderTeamNamesC();renderCustomPointsC();renderIndividualTableC();updateA();updateB();updateC();renderOverlay();applyObsPrefs();$('undoUniversal').disabled=!universalUndo.length;lastUndoSnapshot=snapshotForUndo();showToast('直前の入力を戻しました');}catch(e){showToast('取り消しに失敗しました');}}
-function applyObsPrefs(){const el=$('obsOverlay');if(!el)return;el.style.setProperty('--obs-font',`${obsPrefs.font}px`);el.style.setProperty('--obs-alpha',String(obsPrefs.opacity/100));el.style.setProperty('--obs-scale',`${obsPrefs.scale}%`);el.style.setProperty('--obs-top',`${obsPrefs.top}px`);el.style.width=`${obsPrefs.scale}%`;el.style.left='50%';el.style.transform=`translate(-50%, ${obsPrefs.top}px)`;el.style.transformOrigin='top center';}
+function applyObsPrefs(){const el=$('obsOverlay');document.documentElement.style.setProperty('--obs-height',`${obsPrefs.height}px`);if(!el)return;el.style.setProperty('--obs-font',`${obsPrefs.font}px`);el.style.setProperty('--obs-alpha',String(obsPrefs.opacity/100));el.style.setProperty('--obs-scale',`${obsPrefs.scale}%`);el.style.setProperty('--obs-top',`${obsPrefs.top}px`);el.style.width=`${obsPrefs.scale}%`;el.style.left='50%';el.style.transform=`translate(-50%, ${obsPrefs.top}px)`;el.style.transformOrigin='top center';}
 function renderMatchHistory(){const cfg=state.activeTeamMode==='B'?state.B:(state.activeTeamMode==='C'?state.C:state.A);const mode=state.activeTeamMode||'A';let rows=[];for(let m=0;m<cfg.matchCount;m++){let entries=[];if(mode==='A'){cfg.names.slice(0,cfg.teamCount).forEach((n,i)=>{const score=num(cfg.matches[m]?.scores?.[i]);if(score!==null)entries.push(`${teamName(cfg,i)} ${score}点`);});}else if(mode==='B'){const totals=Array(cfg.teamCount).fill(0);(cfg.matches[m]?.teams||[]).forEach((t,r)=>{if(t!==''&&Number(t)>=0&&Number(t)<cfg.teamCount)totals[Number(t)]+=selectedPoints()[r]||0;});entries=totals.map((v,i)=>`${teamName(cfg,i)} ${v}点`);}else{const res=calculateIndividualC();const totals=Array(cfg.teamCount).fill(0);state.C.players.forEach((p,i)=>{const r=num(p.ranks[m]);if(r!==null&&r>=1&&r<=24)totals[individualTeamIndex(i)]+=selectedPointsC()[r-1]||0;});entries=totals.map((v,i)=>`${displayTeamNameC(i)} ${v}点`);}const rally=(cfg.matches[m]?.rally||'').trim();if(rally||entries.some(x=>!x.endsWith('0点')||x.includes(' 0点')))rows.push(`<tr><td>${m+1}</td><td>${esc(rally||'—')}</td><td>${esc(entries.join(' ／ ')||'未入力')}</td></tr>`);} $('matchHistory').innerHTML=rows.length?`<div class="table-wrap"><table><thead><tr><th>試合</th><th>ラリー</th><th>チーム別得点</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`:'入力すると履歴が表示されます。';}
 function parseLoungeRoster(text){
  const raw=String(text??'');
@@ -547,11 +577,11 @@ function applyBulkNames(){
 }
 function attachV17Tools(){
  lastUndoSnapshot=snapshotForUndo();
- document.addEventListener('input',e=>{if(e.target.matches('input,textarea,select')&&!['bulkNames','obsPasteInput'].includes(e.target.id))rememberUndo();},true);
+ document.addEventListener('change',e=>{if(e.target.matches('input,textarea,select')&&!['bulkNames','obsPasteInput'].includes(e.target.id))rememberUndo();},true);
  document.addEventListener('click',e=>{if(e.target.closest('button')&&!['undoUniversal','copyA','copyB','copyC','copyObsUrl','copyObsUrlTop'].includes(e.target.id))rememberUndo();},true);
  $('undoUniversal').addEventListener('click',restoreUniversalUndo);$('applyBulkNames').addEventListener('click',applyBulkNames);
- $('obsFontSize').value=String(obsPrefs.font);$('obsOpacity').value=String(obsPrefs.opacity);$('obsTop').value=String(obsPrefs.top);$('obsScale').value=String(obsPrefs.scale);updateBulkNamesPreview();
- [['obsFontSize','font'],['obsOpacity','opacity'],['obsTop','top'],['obsScale','scale']].forEach(([id,key])=>$(id).addEventListener('input',()=>{obsPrefs[key]=Number($(id).value);applyObsPrefs();}));
+ $('obsFontSize').value=String(obsPrefs.font);$('obsOpacity').value=String(obsPrefs.opacity);$('obsTop').value=String(obsPrefs.top);$('obsScale').value=String(obsPrefs.scale);$('obsHeight').value=String(obsPrefs.height);updateBulkNamesPreview();
+ [['obsFontSize','font'],['obsOpacity','opacity'],['obsTop','top'],['obsScale','scale'],['obsHeight','height']].forEach(([id,key])=>$(id).addEventListener('input',()=>{obsPrefs[key]=Number($(id).value);applyObsPrefs();saveState();}));
  document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{renderMatchHistory();}));
 }
 
@@ -724,7 +754,7 @@ function buildOverlayData(mode){
    item.scores.slice(0,cfg.teamCount).forEach((v,i)=>{const n=num(v);if(n!==null&&n>=0&&Number.isInteger(n))totals[i]+=n;});
   }
   const latest=latestUsedIndexA(cfg);
-  return {type:'mk8dx-score-overlay-v1',mode:'ゲーム内配点',matchCount:cfg.matchCount,used,latestMatch:latest+1,rally:latest>=0?(cfg.matches[latest].rally||'').trim():'',items:totals.map((score,index)=>({score,index,name:teamName(cfg,index)}))};
+  return {type:'mkwd-ko-overlay-v1',mode:'ゲーム内配点',matchCount:cfg.matchCount,used,latestMatch:latest+1,rally:latest>=0?(cfg.matches[latest].rally||'').trim():'',items:totals.map((score,index)=>({score,index,name:teamName(cfg,index)}))};
  }
  if(mode==='B'){
   const cfg=state.B,totals=Array(cfg.teamCount).fill(0),pts=selectedPoints();let used=0;
@@ -734,17 +764,17 @@ function buildOverlayData(mode){
    if(has)used++;
   }
   const latest=latestUsedIndexB(cfg);
-  return {type:'mk8dx-score-overlay-v1',mode:'順位・配点集計',matchCount:cfg.matchCount,used,latestMatch:latest+1,rally:latest>=0?(cfg.matches[latest].rally||'').trim():'',items:totals.map((score,index)=>({score,index,name:teamName(cfg,index)}))};
+  return {type:'mkwd-ko-overlay-v1',mode:'順位・配点集計',matchCount:cfg.matchCount,used,latestMatch:latest+1,rally:latest>=0?(cfg.matches[latest].rally||'').trim():'',items:totals.map((score,index)=>({score,index,name:teamName(cfg,index)}))};
  }
  const result=calculateIndividualC(),cfg=state.C;
- const latest=latestUsedIndexC(cfg);return {type:'mk8dx-score-overlay-v1',mode:'個人点集計（チーム合計）',matchCount:cfg.matchCount,used:result.usedMatches,latestMatch:latest+1,rally:latest>=0?(cfg.matches[latest]?.rally||'').trim():'',items:result.teamTotals.map((score,index)=>({score,index,name:displayTeamNameC(index)}))};
+ const latest=latestUsedIndexC(cfg);return {type:'mkwd-ko-overlay-v1',mode:'個人点集計（チーム合計）',matchCount:cfg.matchCount,used:result.usedMatches,latestMatch:latest+1,rally:latest>=0?(cfg.matches[latest]?.rally||'').trim():'',items:result.teamTotals.map((score,index)=>({score,index,name:displayTeamNameC(index)}))};
 }
 function overlayTotals(){
  if(externalOverlayData)return externalOverlayData;
  return buildOverlayData(state.activeTeamMode||'A');
 }
 function normalizeOverlayData(raw){
- if(!raw||raw.type!=='mk8dx-score-overlay-v1'||!Array.isArray(raw.items)||raw.items.length<1||raw.items.length>24)return null;
+ if(!raw||raw.type!=='mkwd-ko-overlay-v1'||!Array.isArray(raw.items)||raw.items.length<1||raw.items.length>24)return null;
  const matchCount=Number(raw.matchCount),used=Number(raw.used);
  if(!Number.isInteger(matchCount)||matchCount<1||matchCount>100||!Number.isInteger(used)||used<0||used>matchCount)return null;
  const items=[];
@@ -754,7 +784,7 @@ function normalizeOverlayData(raw){
   items.push({score,index,name:String(it?.name??'').slice(0,40)});
  }
  const latestMatch=Number(raw.latestMatch);
- return {type:'mk8dx-score-overlay-v1',mode:String(raw.mode??'外部集計データ').slice(0,50),matchCount,used,latestMatch:Number.isInteger(latestMatch)&&latestMatch>=1&&latestMatch<=matchCount?latestMatch:used,rally:String(raw.rally??'').slice(0,100),items};
+ return {type:'mkwd-ko-overlay-v1',mode:String(raw.mode??'外部集計データ').slice(0,50),matchCount,used,latestMatch:Number.isInteger(latestMatch)&&latestMatch>=1&&latestMatch<=matchCount?latestMatch:used,rally:String(raw.rally??'').slice(0,100),items};
 }
 function renderOverlay(){
  if(!document.body.classList.contains('overlay-mode'))return;
@@ -793,7 +823,7 @@ function parseRankingCopy(text){
  const matchCount=Math.max(latestMatch,Number(remain?.[2]||declared?.[1]||activeCfg.matchCount||5));
  const rallyLine=lines.find(line=>line.startsWith('走ったラリー：'));
  const rally=(hm[2]||'').trim()||((rallyLine?.slice('走ったラリー：'.length)||'').trim().split(/\s+/)[0]||'');
- return normalizeOverlayData({type:'mk8dx-score-overlay-v1',mode:'順位表示コピー',matchCount,used:latestMatch,latestMatch,rally,items});
+ return normalizeOverlayData({type:'mkwd-ko-overlay-v1',mode:'順位表示コピー',matchCount,used:latestMatch,latestMatch,rally,items});
 }
 function applyExternalOverlayFromCopy(){
  const raw=$('obsPasteInput').value.trim();
@@ -880,7 +910,7 @@ function focusRankCell(matchIndex,rankIndex,select=true){
  if(next)setTimeout(()=>{next.focus();if(select)next.select();},0);
 }
 function focusNextRank(matchIndex,rankIndex){focusRankCell(matchIndex,rankIndex+1,true);}
-function pushUndo(action){undoStackB.push(action);if(undoStackB.length>500)undoStackB.shift();$('undoB').disabled=undoStackB.length===0;}
+function pushUndo(action){undoStackB.push(action);if(undoStackB.length>25)undoStackB.shift();$('undoB').disabled=undoStackB.length===0;}
 function assignRankCell(el,teamIndex,advance=true){
  const m=Number(el.dataset.match),r=Number(el.dataset.rank);if(!state.B.matches[m]||teamIndex<0||teamIndex>=state.B.teamCount)return;
  const old=state.B.matches[m].teams[r]??'';const next=String(teamIndex);if(old!==next)pushUndo({type:'cell',m,r,old});
